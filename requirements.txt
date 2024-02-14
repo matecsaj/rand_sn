@@ -1,0 +1,28 @@
+# All instructions presume that you are running a terminal in the project's root directory.
+
+# To install dependencies on a new computer or virtual environment.
+# pip install -r requirements.txt
+
+# To upgrade your installed packages.
+# pip install --upgrade -r requirements.txt
+
+# If you see an error like this:
+#     urllib.error.URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed:
+#     unable to get local issuer certificate (_ssl.c:1108)
+# The run the following shell script in your virtual terminal adjusted for your operating system and version of Python.
+# /Applications/Python\ 3.10/Install\ Certificates.command
+
+# for example, to specify the 'requests' library
+# any version
+# requests
+# a specific version
+# requests==2.22.0
+# the latest stable version
+# requests>=2.22.0
+# the latest stable version never 2.23.0
+# requests>=2.22.0, != 2.23.0
+
+# To determine the current requirements.
+# pipreqs -- print scr
+
+black
