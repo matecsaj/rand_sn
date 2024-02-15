@@ -1,15 +1,12 @@
 # standard library imports
 from functools import reduce
-from typing import Dict, Tuple
+import random
+from typing import Dict, Optional, Tuple
 
 
 class LFSR:
     """
-    Fibonacci variant of a Linear Feedback Shift Registers (LFSRs).
-    It is used in various applications such as pseudo-random number generation,
-    digital signal processing, and in cryptographic functions.
-
-    Reference: https://en.wikipedia.org/wiki/Linear-feedback_shift_register
+    Linear Feedback Shift Register (LFSR) class.
     """
 
     optimal_taps: Dict[int, Tuple[int]] = {
@@ -17,26 +14,26 @@ class LFSR:
         3: (3, 2),
         4: (4, 3),
         5: (5, 3),
-        6: (6, 5),  # expected numbers 63 and got 21
+        6: (6, 5),  # TODO this tap does not generate a full sequence of 63 numbers, with a seed of 1 it only gives 21
         7: (7, 6),
         8: (8, 6, 5, 4),
         9: (9, 5),
         10: (10, 7),
         11: (11, 9),
-        # 12: (12, 6, 4, 1),  # expected numbers 4095 and got 1365
-        12: (12, 11, 10, 4),  # expected numbers 4095 and got 1365
+        # 12: (12, 6, 4, 1),  # TODO expected numbers 4095 and got 1365
+        12: (12, 11, 10, 4),  # TODO expected numbers 4095 and got 1365
         13: (13, 4, 3, 1),
         14: (14, 5, 3, 1),
         15: (15, 14),
         16: (16, 15, 13, 4),
         17: (17, 14),
-        18: (18, 11),  # expected numbers 262143 and got 29127
+        18: (18, 11),  # TODO expected numbers 262143 and got 29127
         19: (19, 6, 2, 1),
-        20: (20, 17),  # expected numbers 1048575 and got 209715
-        21: (21, 19),  # expected numbers 2097151 and got 299593
+        20: (20, 17),  # TODO expected numbers 1048575 and got 209715
+        21: (21, 19),  # TODO expected numbers 2097151 and got 299593
         22: (22, 1),
         23: (23, 18),
-        24: (24, 23, 22, 17),  # expected numbers 16777215 and got 5592405
+        24: (24, 23, 22, 17),  # TODO expected numbers 16777215 and got 5592405
         25: (25, 22),
         26: (26, 6, 2, 1),
         27: (27, 5, 2, 1),
@@ -81,54 +78,53 @@ class LFSR:
         # optimal taps produce the longest possible sequence.
     }
 
-    def __init__(self, seed: int = 1, bits: int = 8):
+    def __init__(self, seed: Optional[int] = None, bits: int = 8):
         """
-        Initialize.
+        Initialize LFSR instance.
 
+        :param seed: Start or resume the sequence with a known integer, or None for a random start, defaults to None.
         :param bits: The number of bits in the shift register.
         :return: Returns nothing.
-
         """
 
-        if bits not in self.optimal_taps:
+        # determine the number of bits that will be in the shift register
+        if not isinstance(bits, int):
+            raise TypeError('The bits parameter must be an integer.')
+        elif bits not in self.optimal_taps:
             available_keys = list(self.optimal_taps.keys())
-            raise ValueError(f"Invalid bits. Please choose from the following values: {available_keys}")
-        self.bits = bits
-        self.taps = tuple([bits - tap for tap in self.optimal_taps[bits]])  # Adjust for how Python indexes bits.
-        self.register = seed & (1 << bits) - 1
-
-    def get_state(self) -> Tuple[int, int]:
-        """
-        Get the state, so that you can resume the series later.
-
-        :return: A tuple of integers that define the current state of the series.
-        """
-
-        return self.bits, self.register
-
-    def set_state(self, bits: int, register: int) -> None:
-        """
-        Set the state, so that you can resume a previous series or establish a known state.
-
-        :param bits: The number of bits in the shift register.
-        :param register: Contents of the shift register, leading zeros are permitted.
-        :return: Nothing.
-        """
-
-        max_register = self._max_register(bits)
-        if 0 < register <= max_register:
-            self.taps = self.optimal_taps[bits]
-            self.bits = bits
-            self.max_register = max_register
-            self.register = register
+            raise ValueError(f"Invalid bits. Please choose from the following integers: {available_keys}")
         else:
-            raise ValueError(f"Invalid register value. Please choose an integer between 1 and {max_register}.")
+            self.bits = bits
+
+        # determine what bits will be tapped and then adjust for how Python indexes bits
+        self.taps = tuple([bits - tap for tap in self.optimal_taps[bits]])
+
+        # determine the shift register's initial value, the proper term for this is the seed
+        max_register = self._max_register(bits)
+        if seed is None:
+            self.register = random.randint(1, max_register)
+        elif not isinstance(seed, int):
+            raise ValueError("The seed must be an integer or None.")
+        elif not (1 <= seed <= max_register):
+            raise ValueError(f"The seed must be from 1 to {max_register}.")
+        else:
+            self.register = seed
 
     @staticmethod
     def _max_register(n_bits: int) -> int:
         return 2 ** n_bits - 1
 
-    def next(self) -> int:
+    def __iter__(self):
+        """
+        Return the iterator object itself. This is required for the object
+        to be used in for loops and other places where an iterable is expected.
+
+        Returns:
+            self: The class instance.
+        """
+        return self
+
+    def __next__(self) -> int:
         """
         Advance the register by one step in the series.
 
@@ -138,6 +134,9 @@ class LFSR:
             │  └─┴─┴─┴┬┴┬┴─┴┬┴─┘
             └──────XOR┘ │   │
                     └──XOR──┘ (taps == 7, 5, 4)
+
+        Returns:
+            int: The next register in the sequence.
         """
         for _ in range(self.bits):
             tap_bits = [(self.register >> tap) & 1 for tap in self.taps]

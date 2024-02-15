@@ -19,49 +19,60 @@ class TestLFSR(unittest.TestCase):
     def setUp(self):
         self.lfsr = LFSR()
 
-    def test_init(self):
+    def test_init_raises(self):
+        with self.assertRaises(ValueError):
+            LFSR(bits=0)
+        with self.assertRaises(ValueError):
+            LFSR(seed=0)
+
+    def test_init_with_seed(self):
+        seed = 123
         bits = 10
+        lfsr = LFSR(seed=seed, bits=bits)
+        self.assertEqual(lfsr.register, seed)
+        self.assertEqual(lfsr.bits, bits)
+        self.assertIsInstance(lfsr.taps, tuple)
+        self.assertIsInstance(lfsr, LFSR)
+
+    def test_init_without_seed(self):
+        bits = 2
         lfsr = LFSR(bits=bits)
         self.assertGreater(lfsr.register, 0)
         self.assertEqual(lfsr.bits, bits)
-        self.assertLess(lfsr.register, 2 ** bits)
-
-    def test_get_state(self):
-        test_bits = 4
-        lfsr = LFSR(bits=test_bits)
-        (bits, register) = lfsr.get_state()
-        self.assertEqual(test_bits, bits)
-        self.assertIsInstance(register, int)
-
-    def test_set_state(self):
-        test_n_bits = 7
-        state1 = LFSR(bits=test_n_bits).get_state()
-        lfsr = LFSR(bits=test_n_bits+1)
-        state2 = lfsr.get_state()
-        lfsr.set_state(*state1)
-        state3 = lfsr.get_state()
-        self.assertNotEqual(state1, state2)
-        self.assertEqual(state1, state3)
+        self.assertIsInstance(lfsr.taps, tuple)
+        self.assertIsInstance(lfsr, LFSR)
 
     def test_next(self):
-        lfsr = LFSR(40)
-        first = lfsr.next()
-        second = lfsr.next()
-        self.assertGreater(first, 0)
-        self.assertGreater(second, 0)
-        self.assertNotEqual(first, second)
+        lfsr = LFSR()
+        bits = lfsr.bits
+        register = lfsr.register
+        result = next(lfsr)
+        self.assertEqual(lfsr.bits, bits)
+        self.assertNotEqual(lfsr.register, register)
+        self.assertEqual(lfsr.register, result)
+        self.assertNotEqual(result, next(lfsr))
+
+    def test_resume_series(self):
+        lfsr = LFSR()
+        result_a = next(lfsr)
+        result_b_1 = next(lfsr)
+        self.assertNotEqual(result_a, result_b_1)
+
+        lfsr = LFSR(seed=result_a)
+        result_b_2 = next(lfsr)
+        self.assertEqual(result_b_1, result_b_2)
 
     def test_series_lengths(self):
         """ all possible numbers should be generated before repeating """
         for bits in LFSR.optimal_taps.keys():
-            if bits > 16:   # more takes too long to run
+
+            if bits > 16:   # TODO optimize speed, so that testing all is practical
                 break
 
             unique_values = 2 ** bits - 1  # zero is not permitted
             generated = set()
             lfsr = LFSR(bits=bits)
-            while True:
-                number = lfsr.next()
+            for number in lfsr:
                 if number not in generated:
                     generated.add(number)
                 else:
@@ -78,39 +89,54 @@ class TestLFSR(unittest.TestCase):
 
 class TestFullCycleRandom(unittest.TestCase):
 
-    def test_init_validation_checks(self):
+    def test_init_raises(self):
         with self.assertRaises(ValueError):
             FullCycleRandom(min_int=-1, max_int=100)
-
         with self.assertRaises(ValueError):
             FullCycleRandom(min_int=101, max_int=100)
+        with self.assertRaises(ValueError):
+            FullCycleRandom(seed=1, min_int=2, max_int=3)
+        with self.assertRaises(ValueError):
+            FullCycleRandom(seed=10, min_int=20, max_int=30)
 
-    # @patch("src.full_cycle_random.LFSR")
-    def test_get_state(self):
-        fcr = FullCycleRandom(min_int=1, max_int=10)
-        expected_state = (1, 10)
-        self.assertEqual(fcr.get_state()[:2], expected_state)
+    def test_init_success(self):
+        min_int = 500
+        max_int = 1000
+        for seed in (None, 750):
+            fcr = FullCycleRandom(seed=seed, min_int=min_int, max_int=max_int)
+            self.assertEqual(fcr.min_int, min_int)
+            self.assertEqual(fcr.max_int, max_int)
+            self.assertIsInstance(fcr.lfsr, LFSR)
+            self.assertIsInstance(fcr, FullCycleRandom)
 
-    def test_set_state(self):
-        fcr = FullCycleRandom(min_int=3, max_int=6)
-        fcr.set_state(min_int=1, max_int=10, n_bits=7, register=4)
-
-        self.assertEqual(fcr.min_int, 1)
-        self.assertEqual(fcr.max_int, 10)
-
-    # @patch("src.full_cycle_random.LFSR.next", return_value=5)
     def test_next(self):
-        fcr = FullCycleRandom(min_int=1, max_int=10)
-        self.assertEqual(fcr.next(), 5)
+        fsr = FullCycleRandom()
+        min_int = fsr.min_int
+        max_int = fsr.max_int
+        result = next(fsr)
+        self.assertEqual(fsr.min_int, min_int)
+        self.assertEqual(fsr.max_int, max_int)
+        self.assertLessEqual(min_int, result)
+        self.assertLessEqual(result, max_int)
+        self.assertNotEqual(result, next(fsr))
+
+    def test_resume_series(self):
+        fcr = FullCycleRandom()
+        result_a = next(fcr)
+        result_b_1 = next(fcr)
+        self.assertNotEqual(result_a, result_b_1)
+
+        fcr = FullCycleRandom(seed=result_a)
+        result_b_2 = next(fcr)
+        self.assertEqual(result_b_1, result_b_2)
 
     def test_series_length(self):
         """ All possible numbers should be generated before repeating """
-        for (min_int, max_int) in ((1,7), (1, 100), (50, 100)):
+        for (min_int, max_int) in ((1, 1), (1, 7), (2, 8), (50, 100), (1, 99999)):
             unique_values = max_int - min_int + 1
             fcr = FullCycleRandom(min_int=min_int, max_int=max_int)
             generated = set()
-            while True:
-                number = fcr.next()
+            for number in fcr:
                 if number not in generated:
                     generated.add(number)
                 else:
