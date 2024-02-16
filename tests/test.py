@@ -5,6 +5,7 @@
 
 # Standard library imports
 import unittest
+import time
 
 # 3rd party libraries
 
@@ -64,10 +65,13 @@ class TestLFSR(unittest.TestCase):
 
     def test_series_lengths(self):
         """ all possible numbers should be generated before repeating """
+        start_time = time.time()
+        timeout = 5
         for bits in LFSR.optimal_taps.keys():
 
-            if bits > 16:   # TODO optimize speed, so that testing all is practical
-                break
+            if time.time() - start_time > timeout:  # Check if 5 seconds have passed
+                print(f"Breaking after {timeout} seconds for {bits} bits.")
+                break  # Break out of the loop if more than 5 seconds have passed
 
             unique_values = 2 ** bits - 1  # zero is not permitted
             generated = set()

@@ -14,26 +14,25 @@ class LFSR:
         3: (3, 2),
         4: (4, 3),
         5: (5, 3),
-        6: (6, 5),  # TODO this tap does not generate a full sequence of 63 numbers, with a seed of 1 it only gives 21
+        6: (6, 5),
         7: (7, 6),
         8: (8, 6, 5, 4),
         9: (9, 5),
         10: (10, 7),
         11: (11, 9),
-        # 12: (12, 6, 4, 1),  # TODO expected numbers 4095 and got 1365
-        12: (12, 11, 10, 4),  # TODO expected numbers 4095 and got 1365
+        12: (12, 6, 4, 1),
         13: (13, 4, 3, 1),
         14: (14, 5, 3, 1),
         15: (15, 14),
         16: (16, 15, 13, 4),
         17: (17, 14),
-        18: (18, 11),  # TODO expected numbers 262143 and got 29127
+        18: (18, 11),
         19: (19, 6, 2, 1),
-        20: (20, 17),  # TODO expected numbers 1048575 and got 209715
-        21: (21, 19),  # TODO expected numbers 2097151 and got 299593
+        20: (20, 17),
+        21: (21, 19),
         22: (22, 1),
         23: (23, 18),
-        24: (24, 23, 22, 17),  # TODO expected numbers 16777215 and got 5592405
+        24: (24, 23, 22, 17),
         25: (25, 22),
         26: (26, 6, 2, 1),
         27: (27, 5, 2, 1),
@@ -138,9 +137,11 @@ class LFSR:
         Returns:
             int: The next register in the sequence.
         """
-        for _ in range(self.bits):
-            tap_bits = [(self.register >> tap) & 1 for tap in self.taps]
-            bit = reduce(lambda x, y: x ^ y, tap_bits)
-            self.register = (self.register >> 1) | (bit << (self.bits - 1))
+        tap_bits = 0
+        for tap in self.taps:
+            tap_bits = tap_bits ^ (self.register >> tap) & 1
+        bit = tap_bits
+
+        self.register = (self.register >> 1) | (bit << (self.bits - 1))
 
         return self.register
