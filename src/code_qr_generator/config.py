@@ -7,7 +7,7 @@ class Config:
     seed: int
     min_int: int
     max_int: int
-    path_file: str = 'config.json'
+    _path_file: str = 'config.json'
 
     def __init__(self):
         self.load()
@@ -19,7 +19,7 @@ class Config:
         """
         warning = "Preserve the seed! Back-up this file and don't delete it."
         config_dict = {'*warning*': warning, 'seed': self.seed, 'min_int': self.min_int, 'max_int': self.max_int}
-        with open(self.path_file, 'w') as f:
+        with open(self._path_file, 'w') as f:
             json.dump(config_dict, f, indent=4)
 
     def load(self) -> None:
@@ -28,7 +28,7 @@ class Config:
         :return: None.
         """
         try:
-            with open(self.path_file, 'r') as f:
+            with open(self._path_file, 'r') as f:
                 config_dict = json.load(f)
                 self.seed = config_dict.get('seed')
                 self.min_int = config_dict.get('min_int')

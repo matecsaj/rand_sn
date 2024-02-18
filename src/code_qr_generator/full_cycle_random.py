@@ -24,8 +24,8 @@ class FullCycleRandom:
         Returns:
             None
         """
-        self.min_int = self._validate_input(value=min_int, name='min_int', min_val=1)
-        self.max_int = self._validate_input(value=max_int, name='max_int', min_val=min_int)
+        self._min_int = self._validate_input(value=min_int, name='min_int', min_val=1)
+        self._max_int = self._validate_input(value=max_int, name='max_int', min_val=min_int)
 
         # determine the minimum number of bits required to store the maximum integer
         bits = max_int.bit_length()
@@ -34,12 +34,12 @@ class FullCycleRandom:
 
         # make or validate a seed
         if seed is None:
-            seed = random.randint(self.min_int, self.max_int)
+            seed = random.randint(self._min_int, self._max_int)
         else:
-            seed = self._validate_input(value=seed, name='seed', min_val=self.min_int, max_val=self.max_int)
+            seed = self._validate_input(value=seed, name='seed', min_val=self._min_int, max_val=self._max_int)
 
         # instantiate a Linear Feedback Shift Registers
-        self.lfsr = LFSR(seed=seed, bits=bits)
+        self._lfsr = LFSR(seed=seed, bits=bits)
 
     @staticmethod
     def _validate_input(value: int, name: str, min_val: Optional[int] = None, max_val: Optional[int] = None) -> int:
@@ -80,6 +80,6 @@ class FullCycleRandom:
         Returns:
             int: The next number in the sequence.
         """
-        for result in self.lfsr:
-            if self.min_int <= result <= self.max_int:
+        for result in self._lfsr:
+            if self._min_int <= result <= self._max_int:
                 return result

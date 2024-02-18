@@ -30,27 +30,27 @@ class TestLFSR(unittest.TestCase):
         seed = 123
         bits = 10
         lfsr = LFSR(seed=seed, bits=bits)
-        self.assertEqual(lfsr.register, seed)
-        self.assertEqual(lfsr.bits, bits)
-        self.assertIsInstance(lfsr.taps, tuple)
+        self.assertEqual(lfsr._register, seed)
+        self.assertEqual(lfsr._bits, bits)
+        self.assertIsInstance(lfsr._taps, tuple)
         self.assertIsInstance(lfsr, LFSR)
 
     def test_init_without_seed(self):
         bits = 2
         lfsr = LFSR(bits=bits)
-        self.assertGreater(lfsr.register, 0)
-        self.assertEqual(lfsr.bits, bits)
-        self.assertIsInstance(lfsr.taps, tuple)
+        self.assertGreater(lfsr._register, 0)
+        self.assertEqual(lfsr._bits, bits)
+        self.assertIsInstance(lfsr._taps, tuple)
         self.assertIsInstance(lfsr, LFSR)
 
     def test_next(self):
         lfsr = LFSR()
-        bits = lfsr.bits
-        register = lfsr.register
+        bits = lfsr._bits
+        register = lfsr._register
         result = next(lfsr)
-        self.assertEqual(lfsr.bits, bits)
-        self.assertNotEqual(lfsr.register, register)
-        self.assertEqual(lfsr.register, result)
+        self.assertEqual(lfsr._bits, bits)
+        self.assertNotEqual(lfsr._register, register)
+        self.assertEqual(lfsr._register, result)
         self.assertNotEqual(result, next(lfsr))
 
     def test_resume_series(self):
@@ -67,10 +67,10 @@ class TestLFSR(unittest.TestCase):
         """ all possible numbers should be generated before repeating """
         start_time = time.time()
         timeout = 5
-        for bits in LFSR.optimal_taps.keys():
+        for bits in LFSR._optimal_taps.keys():
 
             if time.time() - start_time > timeout:  # Check if 5 seconds have passed
-                print(f"Breaking after {timeout} seconds for {bits} bits.")
+                print(f"Incomplete; breaking at {bits} bits, because of a {timeout} second timeout.")
                 break  # Break out of the loop if more than 5 seconds have passed
 
             unique_values = 2 ** bits - 1  # zero is not permitted
@@ -86,7 +86,7 @@ class TestLFSR(unittest.TestCase):
     def test_for_missing_taps(self):
         """ The keys for the taps should start at 2 and increment. """
         last = 1
-        for key in LFSR.optimal_taps.keys():
+        for key in LFSR._optimal_taps.keys():
             self.assertEqual(last + 1, key)
             last = key
 
@@ -108,18 +108,18 @@ class TestFullCycleRandom(unittest.TestCase):
         max_int = 1000
         for seed in (None, 750):
             fcr = FullCycleRandom(seed=seed, min_int=min_int, max_int=max_int)
-            self.assertEqual(fcr.min_int, min_int)
-            self.assertEqual(fcr.max_int, max_int)
-            self.assertIsInstance(fcr.lfsr, LFSR)
+            self.assertEqual(fcr._min_int, min_int)
+            self.assertEqual(fcr._max_int, max_int)
+            self.assertIsInstance(fcr._lfsr, LFSR)
             self.assertIsInstance(fcr, FullCycleRandom)
 
     def test_next(self):
         fsr = FullCycleRandom()
-        min_int = fsr.min_int
-        max_int = fsr.max_int
+        min_int = fsr._min_int
+        max_int = fsr._max_int
         result = next(fsr)
-        self.assertEqual(fsr.min_int, min_int)
-        self.assertEqual(fsr.max_int, max_int)
+        self.assertEqual(fsr._min_int, min_int)
+        self.assertEqual(fsr._max_int, max_int)
         self.assertLessEqual(min_int, result)
         self.assertLessEqual(result, max_int)
         self.assertNotEqual(result, next(fsr))

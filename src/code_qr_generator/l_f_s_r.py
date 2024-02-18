@@ -9,7 +9,7 @@ class LFSR:
     Linear Feedback Shift Register (LFSR) class.
     """
 
-    optimal_taps: Dict[int, Tuple[int]] = {
+    _optimal_taps: Dict[int, Tuple[int]] = {
         2: (2, 1),
         3: (3, 2),
         4: (4, 3),
@@ -89,25 +89,25 @@ class LFSR:
         # determine the number of bits that will be in the shift register
         if not isinstance(bits, int):
             raise TypeError('The bits parameter must be an integer.')
-        elif bits not in self.optimal_taps:
-            available_keys = list(self.optimal_taps.keys())
+        elif bits not in self._optimal_taps:
+            available_keys = list(self._optimal_taps.keys())
             raise ValueError(f"Invalid bits. Please choose from the following integers: {available_keys}")
         else:
-            self.bits = bits
+            self._bits = bits
 
         # determine what bits will be tapped and then adjust for how Python indexes bits
-        self.taps = tuple([bits - tap for tap in self.optimal_taps[bits]])
+        self._taps = tuple([bits - tap for tap in self._optimal_taps[bits]])
 
         # determine the shift register's initial value, the proper term for this is the seed
         max_register = self._max_register(bits)
         if seed is None:
-            self.register = random.randint(1, max_register)
+            self._register = random.randint(1, max_register)
         elif not isinstance(seed, int):
             raise ValueError("The seed must be an integer or None.")
         elif not (1 <= seed <= max_register):
             raise ValueError(f"The seed must be from 1 to {max_register}.")
         else:
-            self.register = seed
+            self._register = seed
 
     @staticmethod
     def _max_register(n_bits: int) -> int:
@@ -138,10 +138,10 @@ class LFSR:
             int: The next register in the sequence.
         """
         tap_bits = 0
-        for tap in self.taps:
-            tap_bits = tap_bits ^ (self.register >> tap) & 1
+        for tap in self._taps:
+            tap_bits = tap_bits ^ (self._register >> tap) & 1
         bit = tap_bits
 
-        self.register = (self.register >> 1) | (bit << (self.bits - 1))
+        self._register = (self._register >> 1) | (bit << (self._bits - 1))
 
-        return self.register
+        return self._register
