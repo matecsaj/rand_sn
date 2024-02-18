@@ -1,9 +1,12 @@
+# standard library imports
+import argparse
+import os
+import random
+
 # local imports
 from l_f_s_r import LFSR
 from full_cycle_random import FullCycleRandom
 
-# standard library imports
-import os
 
 # constants
 seed_path_file = 'seed.txt'
@@ -45,39 +48,22 @@ def main() -> None:
 
     :return: None
     """
+    parser = argparse.ArgumentParser(description="A tool for generating unique codes.")
+    parser.add_argument('-c', '--count', type=int, required=True, help="Number of codes to generate.")
+    args = parser.parse_args()
 
-    lfsr = LFSR(bits=3)
-    for _ in range(7):  # Generate 8 numbers
-        print(f"next {next(lfsr)}")
+    min_int = 10000
+    max_int = 99999
+    try:
+        code = load_seed()
+    except FileNotFoundError:
+        code = random.randint(min_int, max_int)
 
-    # create a new full cycle random number generator with a randomly generated seed
-    max_int = 10000
-    fcr = FullCycleRandom(max_int=max_int)
-    result = None
-
-    # generate the first five numbers in the sequence and then save the seed
-    for _ in range(5):  # Generate 5 numbers
-        result = next(fcr)
-        print(result)
-    save_seed(result)
-
-    # generate five more numbers by doing a for loop on the generator
-    limit = 5
-    for result in fcr:
-        print(result)
-        limit -= 1
-        if limit < 0:
-            break
-    save_seed(result)
-
-    # simulate resuming a full cycle number generator after shutting down and then restarting the program
-    del lfsr
-    fcr = FullCycleRandom(seed=load_seed(), max_int=max_int)
-
-    # generate the next five numbers in the sequence and never continue the sequence in future
-    for _ in range(5):
-        print(next(fcr))
-    purge_seed()
+    fcr = FullCycleRandom(seed=code, min_int=min_int, max_int=max_int)
+    for _ in range(args.count):
+        code = next(fcr)
+        print(f"code {code}")
+    save_seed(code)
 
 
 if __name__ == "__main__":
