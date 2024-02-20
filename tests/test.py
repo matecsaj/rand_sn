@@ -4,15 +4,49 @@
 # 3. python -m unittest tests/tests
 
 # Standard library imports
-import unittest
+import os
+from pathlib import Path
+import tempfile
 import time
+import unittest
 
 # 3rd party libraries
 
 
 # Local imports
+from src.code_qr_generator.batch import Batch
 from src.code_qr_generator.full_cycle_random import FullCycleRandom
 from src.code_qr_generator.l_f_s_r import LFSR
+
+
+class TestBatch(unittest.TestCase):
+    def setUp(self):
+        self.temp_dir: str = tempfile.mkdtemp()
+
+    def test_delete(self):
+        batch = Batch(path=self.temp_dir)
+        path_directory = batch.path_directory
+        self.assertTrue(Path(path_directory).exists())
+        batch.delete()
+        self.assertIsNone(batch.number)
+        self.assertIsNone(batch.directory)
+        self.assertIsNone(batch.path_directory)
+        self.assertFalse(Path(path_directory).exists())
+
+    def test_one_two_three(self):
+        """ Test that the first three batches are created correctly. """
+        max_batch = 3
+        batches = [Batch(path=self.temp_dir) for _ in range(max_batch)]
+        for i, batch in enumerate(batches):
+            self.assertEqual(batch.number, i + 1)
+            directory = f"batch{str(i + 1).zfill(batch._digits)}"
+            self.assertEqual(batch.directory, directory)
+            self.assertEqual(batch.path, self.temp_dir)
+            self.assertEqual(batch.path_directory, os.path.join(self.temp_dir, directory))
+            batch.delete()
+
+    def tearDown(self):
+        os.rmdir(self.temp_dir)
 
 
 class TestLFSR(unittest.TestCase):

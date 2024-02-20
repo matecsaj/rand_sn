@@ -1,27 +1,39 @@
-# standard library imports
+# python
 import argparse
-
-# local imports
-from full_cycle_random import FullCycleRandom
+from batch import Batch
 from config import Config
+from full_cycle_random import FullCycleRandom
 
 
 def main() -> None:
-    """
-    This function is demonstration of how to use the code-qr generator.
-    :return: None
-    """
     parser = argparse.ArgumentParser(description="A tool for generating unique codes.")
     parser.add_argument('-c', '--count', type=int, required=True, help="Number of codes to generate.")
     args = parser.parse_args()
+    if not isinstance(args.count, int) or args.count < 0:
+        raise ValueError("--count argument must be positive integer.")
 
-    configuration = Config()
-    fcr = FullCycleRandom(seed=configuration.seed, min_int=configuration.min_int, max_int=configuration.max_int)
-    for _ in range(args.count):
-        code = next(fcr)
-        configuration.seed = code
-        print(f"code {code}")
-    configuration.save()  # we MUST save the seed to disk so that we can resume the series on the next run
+    batch: Batch or None = None
+    try:
+        config = Config()
+        fcr = FullCycleRandom(seed=config.seed, min_int=config.min_int, max_int=config.max_int)
+        batch = Batch()
+
+        for _ in range(args.count):
+            code = next(fcr, None)
+            if code is None:
+                print("Reached the end of the FullCycleRandom sequence.")
+                break
+            config.seed = code
+            print(f"code {code}")
+
+    except Exception as e:
+        if isinstance(batch, Batch):
+            batch.delete()
+        raise
+
+    else:
+        config.save()
+        print(f"Batch {batch.number} generated {args.count} codes.")
 
 
 if __name__ == "__main__":
