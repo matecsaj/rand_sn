@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 import tempfile
 import time
+import shutil
 import unittest
 
 # 3rd party libraries
@@ -15,6 +16,7 @@ import unittest
 
 # Local imports
 from src.code_qr_generator.batch import Batch
+from src.code_qr_generator.config import Config
 from src.code_qr_generator.full_cycle_random import FullCycleRandom
 from src.code_qr_generator.l_f_s_r import LFSR
 
@@ -46,7 +48,43 @@ class TestBatch(unittest.TestCase):
             batch.delete()
 
     def tearDown(self):
-        os.rmdir(self.temp_dir)
+        shutil.rmtree(self.temp_dir)
+
+
+class TestConfig(unittest.TestCase):
+    def setUp(self):
+        self.temp_dir: str = tempfile.mkdtemp()
+        self.file = 'config.json'
+        self.path_file = os.path.join(self.temp_dir, self.file)
+
+    def test_init_and_reload(self):
+
+        # Start off with no config file.
+        config = Config(path=self.temp_dir)
+        self._validate_config(config)
+        results1 = (config.min_int, config.seed, config.max_int)
+
+        # Save the config file.
+        config.save()
+        self.assertTrue(os.path.exists(config._path_file))
+
+        # Reload the config file
+        config = Config(path=self.temp_dir)
+        self._validate_config(config)
+        results2 = (config.min_int, config.seed, config.max_int)
+        self.assertEqual(results1, results2)
+
+    def _validate_config(self, config: Config):
+        self.assertIsInstance(config.min_int, int)
+        self.assertIsInstance(config.seed, int)
+        self.assertIsInstance(config.max_int, int)
+        self.assertLess(config.min_int, config.seed)
+        self.assertLessEqual(config.seed, config.max_int)
+        self.assertEqual(config._file, self.file)
+        self.assertEqual(config._path_file, self.path_file)
+
+    def tearDown(self):
+        shutil.rmtree(self.temp_dir)
 
 
 class TestLFSR(unittest.TestCase):

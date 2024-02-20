@@ -25,7 +25,12 @@ class Batch:
         Returns:
             None
         """
-        self.path = os.getcwd() if path is None else path
+        if path is None:
+            path = os.getcwd()
+        elif not os.path.isdir(path):
+            raise ValueError(f"Path {path} is not a directory.")
+        self.path = path
+
         self.number = self._next_number()
         self.directory = f"{self._prefix}{str(self.number).zfill(self._digits)}"
         self.path_directory = os.path.join(self.path, self.directory)

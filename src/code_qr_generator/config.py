@@ -1,15 +1,32 @@
 # standard library
 import json
 import random
+import os
+from typing import Optional
 
 
 class Config:
     seed: int
     min_int: int
     max_int: int
-    _path_file: str = 'config.json'
+    _file: str = 'config.json'
+    _path_file: Optional[str] = None
 
-    def __init__(self):
+    def __init__(self, path: Optional[str] = None):
+        """
+        Initialize Config instance.
+
+        Args:
+            path (str): the path where the config file is or will be stored, defaults to the current working directory
+
+        Returns:
+            None
+        """
+        if path is None:
+            path = os.getcwd()
+        elif not os.path.isdir(path):
+            raise ValueError(f"Path {path} is not a directory.")
+        self._path_file = os.path.join(path, self._file)
         self.load()
 
     def save(self) -> None:
