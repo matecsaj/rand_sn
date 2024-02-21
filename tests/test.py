@@ -150,6 +150,8 @@ class TestLFSR(unittest.TestCase):
             lfsr = LFSR(bits=bits)
             for number in lfsr:
                 if number not in generated:
+                    self.assertGreaterEqual(number, 1)
+                    self.assertGreaterEqual(bits, number.bit_length())
                     generated.add(number)
                 else:
                     self.assertEqual(unique_values, len(generated), f"A {bits} bit series should be {unique_values} long, not {len(generated)}.")
@@ -208,16 +210,24 @@ class TestFullCycleRandom(unittest.TestCase):
 
     def test_series_length(self):
         """ All possible numbers should be generated before repeating """
-        for (min_int, max_int) in ((1, 1), (1, 7), (2, 8), (50, 100), (1, 99999)):
+        for (min_int, max_int) in ((1, 1),  # smallest possible
+                                   (1, 6),  # use all but one bit of 3-bit shift register
+                                   (1, 7),  # use all 3-bits
+                                   (1, 8),  # barely require 4-bits
+                                   (50, 99999),     # a wide range with a practical run-time
+                                   (99999999999999999999999998, 99999999999999999999999999),    # big shift, use 2-bits
+                                   ):
             unique_values = max_int - min_int + 1
             fcr = FullCycleRandom(min_int=min_int, max_int=max_int)
             generated = set()
             for number in fcr:
                 if number not in generated:
+                    self.assertGreaterEqual(number, min_int)
+                    self.assertLessEqual(number, max_int)
                     generated.add(number)
                 else:
                     self.assertEqual(unique_values, len(generated))
-                    break
+                    break   # series complete
 
 
 if __name__ == "__main__":
