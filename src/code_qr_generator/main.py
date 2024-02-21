@@ -64,7 +64,7 @@ def generate_barcode(number: int, path: str) -> None:
     code128.save(os.path.join(path, output_filename), options=writer_options)
 
 
-def generate_qrcode(number: int, path: str, prefix: str) -> None:
+def generate_qrcode(number: int, path: str, prefix: str or None) -> None:
     """
     Generate a QR code.
 
@@ -84,7 +84,11 @@ def generate_qrcode(number: int, path: str, prefix: str) -> None:
         box_size=10,    # the size of each box (pixel) in the QR code
         border=4,       # recommended minimum is 4
     )
-    qr.add_data(f"{prefix}{number}")
+    if prefix is not None:
+        data = f"{prefix}{number}"
+    else:
+        data = str(number)
+    qr.add_data(data)
     qr.make(fit=True)
 
     # Create an image from the QR Code instance
@@ -97,6 +101,7 @@ def generate_qrcode(number: int, path: str, prefix: str) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description="A tool for generating unique codes.")
     parser.add_argument('-c', '--count', type=int, required=True, help="Number of codes to generate.")
+    parser.add_argument('-p', '--prefix', type=str, required=False, help="Prefix used in QR codes. Example: https://yourdomain.com/c/")
     args = parser.parse_args()
     if not isinstance(args.count, int) or args.count < 0:
         raise ValueError("--count argument must be positive integer.")
@@ -104,7 +109,10 @@ def main() -> None:
     batch: Batch or None = None
     try:
         # preparation
-        config = Config()
+        if args.prefix:
+            config = Config(prefix=args.prefix)
+        else:
+            config = Config()
         fcr = FullCycleRandom(seed=config.seed, min_int=config.min_int, max_int=config.max_int)
         batch = Batch()
 
@@ -123,7 +131,7 @@ def main() -> None:
 
         # for each code generate a barcode image, collection located at the end
         for code in codes:
-            generate_qrcode(code, batch.path_directory, prefix='https://mydomain.com/c/')
+            generate_qrcode(code, batch.path_directory, config.prefix)
 
     except Exception as e:
         if isinstance(batch, Batch):

@@ -9,15 +9,17 @@ class Config:
     seed: int
     min_int: int
     max_int: int
+    prefix: str or None
     _file: str = 'config.json'
     _path_file: Optional[str] = None
 
-    def __init__(self, path: Optional[str] = None):
+    def __init__(self, path: Optional[str] = None, prefix: Optional[str] = None):
         """
         Initialize Config instance.
 
         Args:
             path (str): the path where the config file is or will be stored, defaults to the current working directory
+            prefix (str): The prefix to use in QR code generation, example 'https://yourdomain.com/c/'
 
         Returns:
             None
@@ -28,6 +30,8 @@ class Config:
             raise ValueError(f"Path {path} is not a directory.")
         self._path_file = os.path.join(path, self._file)
         self.load()
+        if prefix is not None:
+            self.prefix = prefix
 
     def save(self) -> None:
         """
@@ -35,7 +39,12 @@ class Config:
         :return: None
         """
         warning = "Preserve the seed! Back-up this file and don't delete it."
-        config_dict = {'*warning*': warning, 'seed': self.seed, 'min_int': self.min_int, 'max_int': self.max_int}
+        config_dict = {'*warning*': warning,
+                       'seed': self.seed,
+                       'min_int': self.min_int,
+                       'max_int': self.max_int,
+                       'prefix': self.prefix,
+                       }
         with open(self._path_file, 'w') as f:
             json.dump(config_dict, f, indent=4)
 
@@ -52,8 +61,10 @@ class Config:
                 self.max_int = config_dict.get('max_int')
                 if not (self.min_int <= self.seed <= self.max_int):
                     raise ValueError("Range error, min_int <= seed <= max_int is required.")
+                self.prefix = config_dict.get('prefix')
         except FileNotFoundError:
             self.min_int = 100000000000
             self.max_int = 999999999999
             self.seed = random.randint(self.min_int, self.max_int)
+            self.prefix = None
             self.save()

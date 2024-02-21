@@ -8,9 +8,9 @@ List of sections you included in your README file.
 Instructions on how to install and configure the project are pending.
 ## Usage
 Guide on how to use the project.
-Run the program with the command line option -c 10 to generate 10 codes. Use a different number to suit your needs.
+Run the program with the command line option -c 10 to generate 10 codes. Prefix QR codes with what is after 'p'.
 
-`python -m main.py -c 10`
+`python -m main.py -c 10 -p https://yourdomain.com/c/`
 
 After the first run, should the range of codes not be to your liking, then modify config.json such that the seed is a number between min and max int.
 ## Backup and Restore
