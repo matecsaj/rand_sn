@@ -1,4 +1,4 @@
-# standard library
+# standard libraries
 import json
 import random
 import os
@@ -53,7 +53,7 @@ class Config:
                 if not (self.min_int <= self.seed <= self.max_int):
                     raise ValueError("Range error, min_int <= seed <= max_int is required.")
         except FileNotFoundError:
-            self.min_int = 1000000000000
-            self.max_int = 9999999999999
+            self.min_int = 100000000000
+            self.max_int = 999999999999
             self.seed = random.randint(self.min_int, self.max_int)
             self.save()

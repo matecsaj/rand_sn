@@ -1,4 +1,4 @@
-# standard library imports
+# standard libraries
 import os
 from typing import Optional
 

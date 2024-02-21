@@ -1,4 +1,4 @@
-# standard library imports
+# standard libraries
 import random
 from typing import Optional
 

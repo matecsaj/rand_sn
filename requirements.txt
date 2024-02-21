@@ -25,4 +25,6 @@
 # To determine the current requirements.
 # pipreqs -- print scr
 
-black
+python-barcode
+# black     # only used when editing the code
+qrcode[pil]

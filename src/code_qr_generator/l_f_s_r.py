@@ -1,5 +1,4 @@
-# standard library imports
-from functools import reduce
+# standard libraries
 import random
 from typing import Dict, Optional, Tuple
 
