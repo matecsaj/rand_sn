@@ -1,12 +1,13 @@
 # python
 
 # standard libraries
-import argparse
+from argparse import ArgumentParser, Namespace
 import json
 import os
+from typing import Any, Dict, Optional, Tuple
 
 # 3rd party libraries
-import barcode
+import barcode      # unconventional, instead of barcode, python-barcode must be installed
 from barcode.writer import ImageWriter
 import qrcode
 
@@ -64,7 +65,7 @@ def generate_barcode(number: int, path: str) -> None:
     code128.save(os.path.join(path, output_filename), options=writer_options)
 
 
-def generate_qrcode(number: int, path: str, prefix: str or None) -> None:
+def generate_qrcode(number: int, path: str, prefix: Optional[str]) -> None:
     """
     Generate a QR code.
 
@@ -98,50 +99,138 @@ def generate_qrcode(number: int, path: str, prefix: str or None) -> None:
     img.save(os.path.join(path, f"qr{number}.png"))
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description="A tool for generating unique codes.")
-    parser.add_argument('-c', '--count', type=int, required=True, help="Number of codes to generate.")
-    parser.add_argument('-p', '--prefix', type=str, required=False, help="Prefix used in QR codes. Example: https://yourdomain.com/c/")
+def validate_args() -> Tuple[bool, Namespace]:
+    """
+    Validates the command line arguments and returns the results.
+    This function is called after parsing the arguments with argparse.
+
+    Args:
+        args: The namespace object returned by argparse.parse_args().
+
+    Returns:
+        A tuple with validated arguments or raises an error with help messages.
+    """
+    parser = ArgumentParser(description="A tool for generating randomized serial numbers with bar and QR codes.")
+
+    # Common arguments
+    parser.add_argument("-c", "--config", type=str, default="code-QR-generator-config",
+                        help="The name of the config file. Default is 'code-QR-generator-config'.")
+
+    # Configuration mode arguments
+    parser.add_argument("-s", "--smallest", type=int,
+                        help="The smallest possible serial number. Default is 1.")
+    parser.add_argument("-b", "--biggest", type=int,
+                        help="The biggest possible serial number. There is no default.")
+    parser.add_argument("-p", "--prefix", type=str,
+                        help="A prefix added to the start of every QR code. There is no default.")
+
+    # Batching mode arguments
+    parser.add_argument("-n", "--number", type=int, default=100,
+                        help="The number of serial numbers you need in the new batch. Default is 100.")
+
+    # Parse the command line arguments
     args = parser.parse_args()
-    if not isinstance(args.count, int) or args.count < 0:
-        raise ValueError("--count argument must be positive integer.")
 
-    batch: Batch or None = None
+    # Validate and process the arguments
+    if args.smallest is not None and args.smallest < 1:
+        raise ValueError("The smallest serial number must be greater than 0.")
+    if args.biggest is not None and args.biggest <= args.smallest:
+        raise ValueError("The biggest serial number must be greater than the smallest serial number.")
+    if args.number is not None and args.number < 1:
+        raise ValueError("The number of serial numbers must be greater than 0.")
+
+    # Check if we're in configuration mode or batching mode based on provided arguments.
+    if args.smallest is not None or args.biggest is not None or args.prefix is not None:
+        print("Configuration mode activated.")
+        config_mode = True
+    elif args.number is not None:
+        print("Batching mode activated.")
+        config_mode = False
+    else:
+        print("No mode implied. Please provide arguments for either configuration or batching.")
+        parser.print_help()
+        exit()
+
+    return config_mode, args
+
+
+def configure(args: Namespace) -> None:
+    """
+    Create a configuration file.
+
+    Args:
+        args: The namespace object returned by argparse.parse_args().
+
+    Returns:
+        None or raises an error.
+    """
+    config = Config(config_filename=args.config)
+    config.configure(smallest=args.smallest, biggest=args.biggest, prefix=args.prefix)
+    config.save()
+
+
+def next_batch(args: Namespace) -> None:
+    """
+    Generate the next batch of serial numbers, barcodes and QR codes.
+
+    Args:
+        args: The namespace object returned by argparse.parse_args().
+
+    Returns:
+        None or raises an error.
+    """
+    # preparation
+    config = Config(config_filename=args.config)
+    config.load()
+    fcr = FullCycleRandom(min_int=config.min_int, seed=config.seed, max_int=config.max_int)
+    batch = Batch()
+
+    # proceed, but if anything goes wrong delete the batch, otherwise save the new seed
     try:
-        # preparation
-        if args.prefix:
-            config = Config(prefix=args.prefix)
-        else:
-            config = Config()
-        fcr = FullCycleRandom(seed=config.seed, min_int=config.min_int, max_int=config.max_int)
-        batch = Batch()
+        # get the next serial numbers in the sequence, and the new seed
+        serial_numbers: list[int] = [next(fcr) for _ in range(args.number)]
+        seed = serial_numbers[-1]
+        serial_numbers = sorted(serial_numbers)
 
-        # get the next codes in the sequence, and the new seed
-        codes: list[int] = [next(fcr) for _ in range(args.count)]
-        seed = codes[-1]
-        codes = sorted(codes)
+        # store all serial numbers in a file
+        with open(os.path.join(batch.path_directory, 'serial-numbers.json'), 'w') as f:
+            json.dump(serial_numbers, f, indent=4)
 
-        # store all codes into a file; located at the start of the batch's directory
-        with open(os.path.join(batch.path_directory, 'codes.json'), 'w') as f:
-            json.dump(codes, f, indent=4)
+        # for each serial number generate a bar and QR code
+        for serial_number in serial_numbers:
+            generate_barcode(serial_number, batch.path_directory)
+            generate_qrcode(serial_number, batch.path_directory, config.prefix)
 
-        # for each code generate a barcode image, collection located in the middle
-        for code in codes:
-            generate_barcode(code, batch.path_directory)
-
-        # for each code generate a barcode image, collection located at the end
-        for code in codes:
-            generate_qrcode(code, batch.path_directory, config.prefix)
-
+    # No matter what went wrong, then delete the incomplete batch.
     except Exception as e:
-        if isinstance(batch, Batch):
-            batch.delete()
-        raise
+        batch.delete()  # Call the delete method
+        raise   # re-raise, let the caller know what went wrong
 
+    # All went well, so update the seed, so the next batch continues the sequence.
     else:
         config.seed = seed
         config.save()
-        print(f"Batch {batch.number} generated {args.count} codes.")
+        print(f"Batch {batch.number} generated {args.number} serial numbers.")
+
+
+def main() -> None:
+    """
+    The main function.
+
+    Either configuration information or a new batch of serials numbers are written to disk.
+    A config must precede batches.
+
+    Args:
+        Command line arguments.
+
+    Returns:
+        None or raises an error.
+    """
+    config_mode, validated_args = validate_args()
+    if config_mode:
+        configure(validated_args)
+    else:
+        next_batch(validated_args)
 
 
 if __name__ == "__main__":

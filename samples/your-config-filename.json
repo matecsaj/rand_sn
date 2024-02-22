@@ -1,0 +1,7 @@
+{
+    "*warning*": "Preserve the seed! Back-up this file and don't delete it.",
+    "min_int": 1000,
+    "seed": 4694,
+    "max_int": 9999,
+    "prefix": "https://your-domain.com/serial-number/"
+}
