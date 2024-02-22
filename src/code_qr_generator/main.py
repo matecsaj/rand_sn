@@ -182,7 +182,7 @@ def next_batch(args: Namespace) -> None:
     # preparation
     config = Config(config_filename=args.config)
     config.load()
-    fcr = FullCycleRandom(min_int=config.min_int, seed=config.seed, max_int=config.max_int)
+    fcr = FullCycleRandom(min_int=config.smallest, seed=config.seed, max_int=config.biggest)
     batch = Batch()
 
     # proceed, but if anything goes wrong delete the batch, otherwise save the new seed
@@ -197,9 +197,9 @@ def next_batch(args: Namespace) -> None:
             json.dump(serial_numbers, f, indent=4)
 
         # for each serial number generate a bar and QR code
-        for serial_number in serial_numbers:
-            generate_barcode(serial_number, batch.path_directory)
-            generate_qrcode(serial_number, batch.path_directory, config.prefix)
+        for number in serial_numbers:
+            generate_barcode(number, batch.path_directory)
+            generate_qrcode(number, batch.path_directory, config.prefix)
 
     # No matter what went wrong, then delete the incomplete batch.
     except Exception as e:

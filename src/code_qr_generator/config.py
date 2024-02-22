@@ -7,8 +7,8 @@ from typing import Optional
 
 class Config:
     seed: int
-    min_int: int
-    max_int: int
+    smallest: int
+    biggest: int
     prefix: Optional[str]
     _file: str
     _path_file: Optional[str] = None
@@ -58,11 +58,11 @@ class Config:
             None
         """
         self.prefix = prefix
-        self.min_int = smallest
-        self.max_int = biggest
-        self.seed = self.min_int    # redo after validation, prevent type errors on the random call
+        self.smallest = smallest
+        self.biggest = biggest
+        self.seed = self.smallest    # redo after validation, prevent type errors on the random call
         self._validate()
-        self.seed = random.randint(self.min_int, self.max_int)
+        self.seed = random.randint(self.smallest, self.biggest)
 
     def save(self) -> None:
         """
@@ -71,7 +71,7 @@ class Config:
         """
         self._validate()
         warning = "Preserve the seed! Back-up this file and don't delete it."
-        config_dict = {'*warning*': warning, 'min_int': self.min_int, 'seed': self.seed, 'max_int': self.max_int, 'prefix': self.prefix}
+        config_dict = {'*warning*': warning, 'smallest': self.smallest, 'seed': self.seed, 'biggest': self.biggest, 'prefix': self.prefix}
         with open(self._path_file, 'w') as f:
             json.dump(config_dict, f, indent=4)
 
@@ -92,11 +92,11 @@ class Config:
         Validate all the class variables.
         :return: None.
         """
-        for (variable, value) in (('min_int', self.min_int), ('seed', self.seed), ('max_int', self.max_int)):
+        for (variable, value) in (('smallest', self.smallest), ('seed', self.seed), ('biggest', self.biggest)):
             if not isinstance(value, int):
                 raise TypeError(f"{variable} is not an integer")
-        if not (0 < self.min_int <= self.seed <= self.max_int):
-            raise ValueError("Range error, 0 < min_int <= seed <= max_int is required.")
+        if not (0 < self.smallest <= self.seed <= self.biggest):
+            raise ValueError("Range error, 0 < smallest <= seed <= biggest is required.")
 
         if self.prefix is not None and not isinstance(self.prefix, str):
             raise TypeError("Prefix must be None or a string.")

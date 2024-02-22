@@ -54,32 +54,32 @@ class TestBatch(unittest.TestCase):
 class TestConfig(unittest.TestCase):
     def setUp(self):
         self.temp_dir: str = tempfile.mkdtemp()
-        self.file = 'config.json'
+        self.file = 'code-QR-generator-config.json'
         self.path_file = os.path.join(self.temp_dir, self.file)
 
     def test_init_and_reload(self):
 
-        # Start off with no config file.
+        # Configure the bare minium and save to disk
         config = Config(path=self.temp_dir)
+        config.configure(biggest=100)
         self._validate_config(config)
-        results1 = (config.min_int, config.seed, config.max_int)
-
-        # Save the config file.
         config.save()
         self.assertTrue(os.path.exists(config._path_file))
+        results1 = (config.smallest, config.seed, config.biggest)
 
-        # Reload the config file
+        # Reload and double check consistency
         config = Config(path=self.temp_dir)
+        config.load()
         self._validate_config(config)
-        results2 = (config.min_int, config.seed, config.max_int)
+        results2 = (config.smallest, config.seed, config.biggest)
         self.assertEqual(results1, results2)
 
     def _validate_config(self, config: Config):
-        self.assertIsInstance(config.min_int, int)
+        self.assertIsInstance(config.smallest, int)
         self.assertIsInstance(config.seed, int)
-        self.assertIsInstance(config.max_int, int)
-        self.assertLess(config.min_int, config.seed)
-        self.assertLessEqual(config.seed, config.max_int)
+        self.assertIsInstance(config.biggest, int)
+        self.assertLess(config.smallest, config.seed)
+        self.assertLessEqual(config.seed, config.biggest)
         self.assertEqual(config._file, self.file)
         self.assertEqual(config._path_file, self.path_file)
 
