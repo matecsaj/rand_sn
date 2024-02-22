@@ -15,10 +15,10 @@ import unittest
 
 
 # Local imports
-from src.code_qr_generator.batch import Batch
-from src.code_qr_generator.config import Config
-from src.code_qr_generator.full_cycle_random import FullCycleRandom
-from src.code_qr_generator.l_f_s_r import LFSR
+from src.rand_sn.batch import Batch
+from src.rand_sn.config import Config
+from src.rand_sn.full_cycle_random import FullCycleRandom
+from src.rand_sn.l_f_s_r import LFSR
 
 
 class TestBatch(unittest.TestCase):
@@ -54,7 +54,7 @@ class TestBatch(unittest.TestCase):
 class TestConfig(unittest.TestCase):
     def setUp(self):
         self.temp_dir: str = tempfile.mkdtemp()
-        self.file = 'code-QR-generator-config.json'
+        self.file = 'RandSN_config.json'
         self.path_file = os.path.join(self.temp_dir, self.file)
 
     def test_init_and_reload(self):
@@ -64,7 +64,7 @@ class TestConfig(unittest.TestCase):
         config.configure(biggest=100)
         self._validate_config(config)
         config.save()
-        self.assertTrue(os.path.exists(config._path_file))
+        self.assertTrue(os.path.exists(config.path_file))
         results1 = (config.smallest, config.seed, config.biggest)
 
         # Reload and double check consistency
@@ -81,7 +81,7 @@ class TestConfig(unittest.TestCase):
         self.assertLess(config.smallest, config.seed)
         self.assertLessEqual(config.seed, config.biggest)
         self.assertEqual(config._file, self.file)
-        self.assertEqual(config._path_file, self.path_file)
+        self.assertEqual(config.path_file, self.path_file)
 
     def tearDown(self):
         shutil.rmtree(self.temp_dir)

@@ -110,11 +110,11 @@ def validate_args() -> Tuple[bool, Namespace]:
     Returns:
         A tuple with validated arguments or raises an error with help messages.
     """
-    parser = ArgumentParser(description="A tool for generating randomized serial numbers with bar and QR codes.")
+    parser = ArgumentParser(description="RandSN - A tool for generating randomized serial numbers with bar and QR codes.")
 
-    # Common arguments
-    parser.add_argument("-c", "--config", type=str, default="code-QR-generator-config",
-                        help="The name of the config file. Default is 'code-QR-generator-config'.")
+    # Common arguments, don't use a default= param, it will be added later
+    parser.add_argument("-c", "--config", type=str,
+                        help="The name of the config file. Default is 'RandSN_config'.")
 
     # Configuration mode arguments
     parser.add_argument("-s", "--smallest", type=int,
@@ -125,8 +125,8 @@ def validate_args() -> Tuple[bool, Namespace]:
                         help="A prefix added to the start of every QR code. There is no default.")
 
     # Batching mode arguments
-    parser.add_argument("-n", "--number", type=int, default=100,
-                        help="The number of serial numbers you need in the new batch. Default is 100.")
+    parser.add_argument("-n", "--number", type=int,
+                        help="The number of serial numbers you need in the new batch.")
 
     # Parse the command line arguments
     args = parser.parse_args()
@@ -141,13 +141,10 @@ def validate_args() -> Tuple[bool, Namespace]:
 
     # Check if we're in configuration mode or batching mode based on provided arguments.
     if args.smallest is not None or args.biggest is not None or args.prefix is not None:
-        print("Configuration mode activated.")
         config_mode = True
     elif args.number is not None:
-        print("Batching mode activated.")
         config_mode = False
     else:
-        print("No mode implied. Please provide arguments for either configuration or batching.")
         parser.print_help()
         exit()
 
@@ -167,6 +164,7 @@ def configure(args: Namespace) -> None:
     config = Config(config_filename=args.config)
     config.configure(smallest=args.smallest, biggest=args.biggest, prefix=args.prefix)
     config.save()
+    print(f"Configured successfully. Important, keep this backed up: {config.path_file}")
 
 
 def next_batch(args: Namespace) -> None:
@@ -210,7 +208,7 @@ def next_batch(args: Namespace) -> None:
     else:
         config.seed = seed
         config.save()
-        print(f"Batch {batch.number} generated {args.number} serial numbers.")
+        print(f"Batch {batch.number} generated {args.number} serial numbers. Look here: {batch.path_directory}")
 
 
 def main() -> None:

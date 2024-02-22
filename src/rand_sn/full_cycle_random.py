@@ -3,7 +3,7 @@ import random
 from typing import Optional
 
 # local imports
-from src.code_qr_generator.l_f_s_r import LFSR
+from src.rand_sn.l_f_s_r import LFSR
 
 
 class FullCycleRandom:

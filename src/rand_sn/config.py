@@ -11,7 +11,7 @@ class Config:
     biggest: int
     prefix: Optional[str]
     _file: str
-    _path_file: Optional[str] = None
+    path_file: Optional[str] = None
     _extension: str = '.json'
 
     def __init__(self,
@@ -23,7 +23,7 @@ class Config:
 
         Args:
             path (str): the path where the config file is or will be stored, defaults to the current working directory
-            config_filename (str): The file name without extension, example 'config'
+            config_filename (str): The file name with or without extension, default 'RandSN_config'
 
         Returns:
             None
@@ -34,16 +34,16 @@ class Config:
         elif not os.path.isdir(path):
             raise ValueError(f"Path {path} is not a directory.")
 
-        # filename
+        # filename, if need be, add the extension
         if config_filename is None:
-            self._file = 'code-QR-generator-config'
+            self._file = 'RandSN_config'
         else:
             self._file = config_filename
         if not self._file.endswith(self._extension):
             self._file += self._extension
 
         # both
-        self._path_file = os.path.join(path, self._file)
+        self.path_file = os.path.join(path, self._file)
 
     def configure(self, biggest: int, smallest: Optional[int] = 1, prefix: Optional[str] = None):
         """
@@ -72,7 +72,7 @@ class Config:
         self._validate()
         warning = "Preserve the seed! Back-up this file and don't delete it."
         config_dict = {'*warning*': warning, 'smallest': self.smallest, 'seed': self.seed, 'biggest': self.biggest, 'prefix': self.prefix}
-        with open(self._path_file, 'w') as f:
+        with open(self.path_file, 'w') as f:
             json.dump(config_dict, f, indent=4)
 
     def load(self) -> None:
@@ -80,7 +80,7 @@ class Config:
         Load configuration from file.
         :return: None.
         """
-        with open(self._path_file, 'r') as f:
+        with open(self.path_file, 'r') as f:
             config_dict = json.load(f)
             config_dict.pop('*warning*')
             for key, value in config_dict.items():
@@ -108,9 +108,9 @@ class Config:
         if self._file == self._extension:
             raise ValueError(f"_file must have something before {self._extension}.")
 
-        if not isinstance(self._path_file, str):
+        if not isinstance(self.path_file, str):
             raise TypeError("_path_file must be a string.")
-        if not self._path_file.endswith(self._extension):
+        if not self.path_file.endswith(self._extension):
             raise ValueError(f"_path_file must end with {self._extension}.")
-        if len(self._path_file) <= len(self._file):
-            raise ValueError(f"the path is missing from _path_file {self._path_file}.")
+        if len(self.path_file) <= len(self._file):
+            raise ValueError(f"the path is missing from _path_file {self.path_file}.")

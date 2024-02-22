@@ -1,5 +1,5 @@
 # Project Name
-# code-QR-generator
+# RandSN - Random Serial Number Generator
 
 ## Description
 
@@ -28,19 +28,19 @@ This is a guide on how to use the project.
 Begin by deciding how serial numbers will be generated. For each config file, do this once and only once. The command-line options are as follows:
 - `-s` or `--smallest`: The lowest possible serial number. The default 1. 
 - `-b` or `--biggest`: The highest possible serial number. There is no default.
-- `-p` or `--prefix`: A prefix added to the start of every QR code. There is no default.
-- `-c` or `--config`: The name of the config file. The default is `code-QR-generator-config`.
+- `-p` or `--prefix`: A prefix added to the start of every QR code. None is the default.
+- `-c` or `--config`: The name of the config file. The default is `RandSN_config.json`.
 
 Sample command:
-`python -m main.py -s 1000 -b 9999 -p https://your-domain.com/serial-number/ -c your-config-filename'
+`python -m main.py -s 1000 -b 9999 -p https://your-domain.com/serial-number/ -c your_config'
 
 ### Batching
 After setting up configuration, generate a new batch of serial numbers every time you need one. The command-line options are as follows:
-- `-n` or `--number`: The number of serial numbers you need in the new batch. The default is 100.
-- `-c` or `--config`: The config file's name. The default is `code-QR-generator-config.json`.
+- `-n` or `--number`: The number of serial numbers you need in the new batch. There is no default.
+- `-c` or `--config`: The config file's name. The default is `RandSN_config.json`.
 
 Sample command:
-`python -m main.py -n 10 -c your-config-filename`
+`python -m main.py -n 10 -c your_config`
 
 ### Configuration and Batching
 
