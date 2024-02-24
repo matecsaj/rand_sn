@@ -6,6 +6,7 @@
 # Standard library imports
 import os
 from pathlib import Path
+import random
 import tempfile
 import time
 import shutil
@@ -58,10 +59,11 @@ class TestConfig(unittest.TestCase):
         self.path_file = os.path.join(self.temp_dir, self.file)
 
     def test_init_and_reload(self):
+        biggest = 10
 
         # Configure the bare minium and save to disk
         config = Config(path=self.temp_dir)
-        config.configure(biggest=100)
+        config.configure(biggest=biggest)
         self._validate_config(config)
         config.save()
         self.assertTrue(os.path.exists(config.path_file))
@@ -70,16 +72,31 @@ class TestConfig(unittest.TestCase):
         # Reload and double check consistency
         config = Config(path=self.temp_dir)
         config.load()
+        config.first = random.randint(1, biggest)    # simulate that a number had be generated
         self._validate_config(config)
         results2 = (config.smallest, config.seed, config.biggest)
         self.assertEqual(results1, results2)
+
+    def test_overflow(self):
+        first = 1
+        config = Config(path=self.temp_dir)
+        config.configure(biggest=10)
+        config.seed_cycle(first)        # establish the first
+        config.seed_cycle(first + 1)    # different should be permitted
+        with self.assertRaises(OverflowError):
+            config.seed_cycle(first)  # simulate cycling back to the first
 
     def _validate_config(self, config: Config):
         self.assertIsInstance(config.smallest, int)
         self.assertIsInstance(config.seed, int)
         self.assertIsInstance(config.biggest, int)
-        self.assertLess(config.smallest, config.seed)
+        self.assertGreater(config.smallest,0)
+        self.assertLessEqual(config.smallest, config.seed)
         self.assertLessEqual(config.seed, config.biggest)
+        if config.first is not None:
+            self.assertIsInstance(config.first, int,"should be None or int")
+            self.assertLessEqual(config.smallest, config.first)
+            self.assertLessEqual(config.first, config.biggest)
         self.assertEqual(config._file, self.file)
         self.assertEqual(config.path_file, self.path_file)
 

@@ -185,28 +185,26 @@ def next_batch(args: Namespace) -> None:
 
     # proceed, but if anything goes wrong delete the batch, otherwise save the new seed
     try:
-        # get the next serial numbers in the sequence, and the new seed
-        serial_numbers: list[int] = [next(fcr) for _ in range(args.number)]
-        seed = serial_numbers[-1]
-        serial_numbers = sorted(serial_numbers)
-
-        # store all serial numbers in a file
-        with open(os.path.join(batch.path_directory, 'serial-numbers.json'), 'w') as f:
-            json.dump(serial_numbers, f, indent=4)
-
-        # for each serial number generate a bar and QR code
-        for number in serial_numbers:
+        # for each new serial number generate a bar and QR code
+        serial_numbers: list[int] = []
+        for _ in range(args.number):
+            number = next(fcr)
+            config.seed_cycle(number)   # update the seed and check for overflow
+            serial_numbers.append(number)
             generate_barcode(number, batch.path_directory)
             generate_qrcode(number, batch.path_directory, config.prefix)
 
-    # No matter what went wrong, then delete the incomplete batch.
+        # store all new serial numbers in a file
+        with open(os.path.join(batch.path_directory, 'serial-numbers.json'), 'w') as f:
+            json.dump(serial_numbers, f, indent=4)
+
+    # No matter what went wrong, delete the incomplete batch.
     except Exception as e:
         batch.delete()  # Call the delete method
         raise   # re-raise, let the caller know what went wrong
 
-    # All went well, so update the seed, so the next batch continues the sequence.
+    # All went well, save the config, so the next batch continues the sequence.
     else:
-        config.seed = seed
         config.save()
         print(f"Batch {batch.number} generated {args.number} serial numbers. Look here: {batch.path_directory}")
 

@@ -98,7 +98,7 @@ To recover, reinstall the program and restore the config file to its working dir
 
 **Q:** Will the system alert me if I've exhausted all possible serial numbers?
 
-**A:** Currently, the system does not automatically warn when the potential for generating new, unique serial numbers within the configured range is exhausted. Planning your serial number ranges and configurations with future needs is essential.
+**A:** Yes, batch generation will abort when the potential for generating new, unique serial numbers within the configured range is exhausted. Planning your serial number ranges and configurations with future needs is essential.
 
 ---
 

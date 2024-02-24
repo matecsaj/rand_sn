@@ -6,13 +6,14 @@ from typing import Optional
 
 
 class Config:
-    seed: int
-    smallest: int
-    biggest: int
-    prefix: Optional[str]
-    _file: str
-    path_file: Optional[str] = None
-    _extension: str = '.json'
+    smallest: int                   # the smallest number permitted
+    seed: int                       # the last number generated, used to determine the next
+    biggest: int                    # the largest number permitted
+    first: Optional[int] = None     # the first number generated, stop if we reach it again
+    prefix: Optional[str]           # a URL stub placed before the number in the QR code
+    _file: str                      # the configuration's file name
+    path_file: Optional[str] = None     # the path to the configuration file
+    _extension: str = '.json'       # the mandatory file extension
 
     def __init__(self,
                  path: Optional[str] = None,
@@ -50,8 +51,8 @@ class Config:
         Configure when there is nothing to load from disk.
 
         Args:
-            smallest (int): the smallest integer that that the serial number can be
-            biggest (int): the biggest integer that that the serial number can be
+            smallest (int): the smallest integer that the serial number can be
+            biggest (int): the biggest integer that the serial number can be
             prefix (str): The prefix to use in QR code generation, example 'https://yourdomain.com/c/'
 
         Returns:
@@ -64,6 +65,22 @@ class Config:
         self._validate()
         self.seed = random.randint(self.smallest, self.biggest)
 
+    def seed_cycle(self, number: int):
+        """
+        Update the seed and check if the cycle is about to repeat.
+
+        Args:
+            number (int): the current number in the sequence
+
+        Returns:
+            None or raises OverflowError
+        """
+        if self.first is None:
+            self.first = number
+        elif self.first == number:
+            raise OverflowError
+        self.seed = number
+
     def save(self) -> None:
         """
         Save configuration to file.
@@ -71,7 +88,7 @@ class Config:
         """
         self._validate()
         warning = "Preserve the seed! Back-up this file and don't delete it."
-        config_dict = {'*warning*': warning, 'smallest': self.smallest, 'seed': self.seed, 'biggest': self.biggest, 'prefix': self.prefix}
+        config_dict = {'*warning*': warning, 'first': self.first, 'smallest': self.smallest, 'seed': self.seed, 'biggest': self.biggest, 'prefix': self.prefix}
         with open(self.path_file, 'w') as f:
             json.dump(config_dict, f, indent=4)
 
@@ -100,6 +117,12 @@ class Config:
 
         if self.prefix is not None and not isinstance(self.prefix, str):
             raise TypeError("Prefix must be None or a string.")
+
+        if self.first is not None:
+            if not isinstance(self.first, int):
+                raise TypeError("First must be None or an int.")
+            elif not (self.smallest <= self.first <= self.biggest):
+                raise ValueError("Range error, smallest <= first <= biggest is required.")
 
         if not isinstance(self._file, str):
             raise TypeError("_file must be a string.")
