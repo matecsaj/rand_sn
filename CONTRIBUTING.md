@@ -1,6 +1,6 @@
 # Contributing
 
-First off, thank you for considering contributing to RandSN! It's people like you that make RandSN such a great tool.
+First off, thank you for considering contributing to rand-sn! It's people like you that make rand-sn such a great tool.
 
 ## Getting Started
 
@@ -30,7 +30,7 @@ For small changes such as typos, minimal code changes, or documentation improvem
 ## Submitting Changes
 
 1. **Push your changes** to a topic branch in your fork of the repository.
-2. **Submit a pull request** to the RandSN repository in the GitHub UI.
+2. **Submit a pull request** to the rand_sn repository in the GitHub UI.
    - In the pull request, describe what your changes do and mention any bugs/issues related to the pull request.
 3. **Update the issue** to mark that you have submitted code and are ready for it to be reviewed (mentioning the pull request in the issue with `#PR`).
 
@@ -54,4 +54,31 @@ For small changes such as typos, minimal code changes, or documentation improvem
 
 - Tests are located in the [tests](tests) folder. Please add unit tests for new code and ensure all tests pass before submitting a pull request.
 
-Thank you for your contributions to RandSN!
+Thank you for your contributions to rand-sn!
+
+## Releasing
+
+Publish a new version of the package to [PyPI - The Python Package Index](https://pypi.org):
+
+1. Always test the package thoroughly before releasing a new version.
+
+2. Increase the Package Version in the [pyproject.toml](pyproject.toml) in a way that is consistent with [semantic versioning standards](https://semver.org).
+
+3. Build Your Package Ensure that you have the necessary packages for building and uploading to PyPI. If not, install them using the command below:
+   ```bash
+   pip install --upgrade pip build setuptools twine wheel
+   ```
+
+4. In your project directory, run the command below to generate distribution archives:
+   ```bash
+   python3 -m build
+   ```
+   This command should output files in the dist directory.
+
+5. Upload to PyPI.:
+   ```bash
+   twine upload dist/*n.n.n*
+   ````
+   1. in place of n.n.n put the new version number
+   2. username: \_\_token\_\_
+   3. password: your token

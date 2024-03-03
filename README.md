@@ -1,5 +1,5 @@
 # Project Name
-# RandSN - Random Serial Number Generator
+# rand-sn - Random Serial Number Generator
 
 ## Description
 
@@ -15,10 +15,15 @@ This Python tool generates serial numbers, corresponding barcodes, and QR codes,
 Instructions on how to install and configure the project are incomplete; you can do the following for now:
 1. Install the current stable version of [Python](https://www.python.org). 
 2. At the command line or terminal prompt, enter.
-```pip install -r requirements.txt```
+```bash
+pip install rand-sn
+```
 
-## Upgrading
-Pending; waiting for the Installation section. 
+## Upgrade
+At the command line or terminal prompt, enter.
+```bash
+pip install --upgrade rand-sn
+```
 
 ## Usage
 A guide on how to use the project.
@@ -32,7 +37,7 @@ Begin by deciding how you want serial numbers to be. For each config file, do th
 - `-c` or `--config`: The optional config file's name.
 
 Sample command:
-```python -m main.py -b 9999 -p https://your-domain.com/serial-number/```
+```rand-sn -b 9999 -p https://your-domain.com/serial-number/```
 
 ### Batching
 After configuring, generate a new batch of serial numbers every time you need one. The command-line options are as follows:
@@ -40,7 +45,7 @@ After configuring, generate a new batch of serial numbers every time you need on
 - `-c` or `--config`:  The optional config file's name.
 
 Sample command:
-```python -m main.py -n 10```
+```rand-sn -n 10```
 
 ## Backup and Restore
 
@@ -52,6 +57,14 @@ To recover, reinstall the program and restore the config file to its working dir
 
 ### FAQ
 
+---
+
+**Q:** When I run rand-sn my operating system says something like command not found.
+
+**A:** Try this alternative.
+        ```
+        python3 -m rand-sn
+        ```
 ---
 
 **Q:** Can I configure and generate batches at the same time?

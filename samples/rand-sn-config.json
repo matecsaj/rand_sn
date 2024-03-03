@@ -1,5 +1,6 @@
 {
     "*warning*": "Preserve the seed! Back-up this file and don't delete it.",
+    "first": 3780,
     "smallest": 1000,
     "seed": 4694,
     "biggest": 9999,

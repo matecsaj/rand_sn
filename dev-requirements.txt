@@ -1,10 +1,10 @@
 # All instructions presume that you are running a terminal in the project's root directory.
 
 # To install dependencies on a new computer or virtual environment.
-# pip install -r requirements.txt
+# pip install -r dev-requirements.txt
 
 # To upgrade your installed packages.
-# pip install --upgrade -r requirements.txt
+# pip install --upgrade -r dev-requirements.txt
 
 # If you see an error like this:
 #     urllib.error.URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed:
@@ -25,6 +25,15 @@
 # To determine the current requirements.
 # pipreqs -- print scr
 
+# always needed, the same list needs to be the .toml file
 python-barcode
-# black     # only used when editing the code
 qrcode[pil]
+
+# recommended when coding
+black
+
+# needed when releasing
+build
+setuptools
+twine
+wheel

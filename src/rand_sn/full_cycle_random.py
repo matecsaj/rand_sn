@@ -3,7 +3,12 @@ import random
 from typing import Optional
 
 # local imports
-from src.rand_sn.l_f_s_r import LFSR
+try:
+    # attempt relative import (assuming running as part of a package)
+    from .l_f_s_r import LFSR
+except ImportError:
+    # fallback to absolute import (assuming running as standalone script)
+    from l_f_s_r import LFSR
 
 
 class FullCycleRandom:

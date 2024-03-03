@@ -55,7 +55,7 @@ class TestBatch(unittest.TestCase):
 class TestConfig(unittest.TestCase):
     def setUp(self):
         self.temp_dir: str = tempfile.mkdtemp()
-        self.file = 'RandSN_config.json'
+        self.file = 'rand-sn-config.json'
         self.path_file = os.path.join(self.temp_dir, self.file)
 
     def test_init_and_reload(self):

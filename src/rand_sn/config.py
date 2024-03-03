@@ -24,7 +24,7 @@ class Config:
 
         Args:
             path (str): the path where the config file is or will be stored, defaults to the current working directory
-            config_filename (str): The file name with or without extension, default 'RandSN_config'
+            config_filename (str): The file name with or without extension, default 'rand-sn-config'
 
         Returns:
             None
@@ -37,7 +37,7 @@ class Config:
 
         # filename, if need be, add the extension
         if config_filename is None:
-            self._file = 'RandSN_config'
+            self._file = 'rand-sn-config'
         else:
             self._file = config_filename
         if not self._file.endswith(self._extension):

@@ -12,9 +12,16 @@ from barcode.writer import ImageWriter
 import qrcode
 
 # local libraries
-from batch import Batch
-from config import Config
-from full_cycle_random import FullCycleRandom
+try:
+    # attempt relative import (assuming running as part of a package)
+    from .batch import Batch
+    from .config import Config
+    from .full_cycle_random import FullCycleRandom
+except ImportError:
+    # fallback to absolute import (assuming running as standalone script)
+    from batch import Batch
+    from config import Config
+    from full_cycle_random import FullCycleRandom
 
 
 def generate_barcode(number: int, path: str) -> None:
@@ -110,11 +117,11 @@ def validate_args() -> Tuple[bool, Namespace]:
     Returns:
         A tuple with validated arguments or raises an error with help messages.
     """
-    parser = ArgumentParser(description="RandSN - A tool for generating randomized serial numbers with bar and QR codes.")
+    parser = ArgumentParser(description="rand-sn - A tool for generating randomized serial numbers with bar and QR codes.")
 
     # Common arguments, don't use a default= param, it will be added later
     parser.add_argument("-c", "--config", type=str,
-                        help="The name of the config file. Default is 'RandSN_config'.")
+                        help="The name of the config file. Default is 'rand-sn-config'.")
 
     # Configuration mode arguments
     parser.add_argument("-s", "--smallest", type=int,
